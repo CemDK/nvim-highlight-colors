@@ -40,6 +40,26 @@ function M.get_color_value(color, row_offset, custom_colors, enable_short_hex )
 		return converters.rgb_to_hex(rgb_table[1], rgb_table[2], rgb_table[3])
 	end
 
+	if patterns.is_oklch_color(color) then
+		local oklch_table = M.get_oklch_values(color)
+		if #oklch_table >= 3 then
+			local l, c, h = oklch_table[1], oklch_table[2], oklch_table[3]
+
+			-- Normalize L if given as percentage (eg, 100 instead of 1)
+			if l > 1 then
+				l = l / 100
+			end
+
+			-- Clamp values to valid OKLCH ranges
+			l = math.max(0, math.min(1, l))
+			c = math.max(0, c)
+			h = h % 360
+
+			local rgb = converters.oklch_to_rgb(l, c, h)
+			return converters.rgb_to_hex(rgb[1], rgb[2], rgb[3])
+		end
+	end
+
 	if (patterns.is_hsl_without_func_color(color)) then
 		local hsl_table = M.get_hsl_without_func_values(color)
 		local rgb_table = converters.hsl_to_rgb(hsl_table[1], hsl_table[2], hsl_table[3])
@@ -102,6 +122,18 @@ function M.get_hsl_values(color)
 	end
 
 	return hsl_table
+end
+
+---Returns the OKLCH values from an OKLCH string
+---@param color string
+---@usage get_oklch_values("oklch(0.5 0.1 240)") => Returns {0.5, 0.1, 240}
+---@return number[]
+function M.get_oklch_values(color)
+	local oklch_table = {}
+	for value in string.gmatch(color, "[%d%.]+") do
+		table.insert(oklch_table, tonumber(value))
+	end
+	return oklch_table
 end
 
 ---Returns the hsl table from a custom property HSL format (e.g. "--name: 0 84.2% 60.2%;")

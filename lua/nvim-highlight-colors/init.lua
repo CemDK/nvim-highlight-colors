@@ -25,6 +25,8 @@ local options = {
 	enable_short_hex = true,
 	enable_tailwind = false,
 	enable_ansi = false,
+	enable_xterm256 = false,
+	enable_xtermTrueColor = false,
 	custom_colors = nil,
 	virtual_symbol = "■",
 	virtual_symbol_prefix = "",
@@ -48,6 +50,7 @@ function M.setup(user_options)
 			end
 		end
 	end
+	vim.tbl_map(function(bufnr) M.refresh_highlights(bufnr, true) end, vim.api.nvim_list_bufs())
 end
 
 ---Highlight visible colors within specified buffer id
@@ -96,7 +99,15 @@ function M.highlight_colors(min_row, max_row, active_buffer_id)
 		ANSI = {
 			is_enabled = options.enable_ansi,
 			patterns = { color_patterns.ansi_regex },
-		}
+		},
+		XTERM_256 = {
+			is_enabled = options.enable_xterm256,
+			patterns = { color_patterns.xterm256_regex },
+		},
+		XTERM_TRUECOLOR = {
+			is_enabled = options.enable_xtermTrueColor,
+			patterns = { color_patterns.xtermTrueColor_regex },
+		},
 	}
 
 	for _, config in pairs(patterns_config) do
